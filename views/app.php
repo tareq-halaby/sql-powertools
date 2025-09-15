@@ -326,7 +326,7 @@
             information_schema).
         </div>
         <?php $maskOverrides = (array)($post['mask_cols'] ?? []); ?>
-        <div class="mt-2 text-xs bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
+        <div id="maskingPanel" class="mt-2 text-xs bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
             <?php if (!empty($maskOverrides)): ?>
             <div class="flex items-start justify-between gap-2">
                 <div>
@@ -814,6 +814,8 @@
                 exportCtas?.classList.toggle('hidden', v !== 'export-structure');
                 backupPanel?.classList.toggle('hidden', v !== 'backup-full');
                 diagramPanel?.classList.toggle('hidden', v !== 'diagram');
+                // Hide masking panel for Export Structure and Diagram
+                document.getElementById('maskingPanel')?.classList.toggle('hidden', v === 'export-structure' || v === 'diagram');
                 document.getElementById('deterministicPanel')?.classList.toggle('hidden', v !== 'clone');
                 // Footer buttons visibility
                 document.getElementById('footerCloneBtn')?.classList.toggle('hidden', v !== 'clone');

@@ -3,7 +3,7 @@
 SQL PowerTools is a lightweight PHP web app to safely clone, export, and back up MySQL databases with security-first features like sensitive data masking, session-backed credentials, and secure mysqldump execution.
 
 ## Features
-- Clone structure and copy a sampled subset of rows
+- Clone structure and copy a sampled subset of rows from selected tables (X rows per table)
 - Deterministic sampling (ORDER BY primary key)
 - Full backups (schema + data) with optional masking
 - Sensitive column auto-detection and per-table overrides
@@ -33,6 +33,15 @@ cp .env.example .env
 php -S localhost:8080 -t .
 ```
 Visit `http://localhost:8080`.
+
+## Usage (Sampling X rows)
+1. Connect to MySQL (Step 1) and choose the source database (Step 2).
+2. Set "Rows per table (max)" to the sample size X.
+3. Pick or create a target database (e.g., `<source>_sample`).
+4. In Step 3, choose "Clone sample", then select tables to include.
+5. Optional: Enable "Deterministic (ORDER BY PK)" for reproducible samples.
+6. Optional: Enable "Mask password-like columns" and adjust per-table overrides.
+7. Click "Clone Sample". A report will show what was created and how many rows were copied.
 
 ## Environment
 Copy `.env.example` to `.env` and set:
