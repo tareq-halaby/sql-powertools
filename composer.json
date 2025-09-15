@@ -1,0 +1,14 @@
+{
+    "name": "sql-powertools/app",
+    "description": "SQL PowerTools – clone, export, and backup MySQL with secure masking.",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "SQL PowerTools Contributors"
+        }
+    ],
+    "require": {
+        "league/plates": "^3.6"
+    }
+}
