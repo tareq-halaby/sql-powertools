@@ -48,6 +48,19 @@ Copy `.env.example` to `.env` and set:
 - `APP_SECRET`: CSRF/session secret
 - `ALLOWED_IPS`: Comma-separated allowlist (optional)
 
+### Authentication and Default Password
+This app includes a simple admin gate to prevent drive-by access on shared machines. The password is read from the environment variable `ADMIN_PASSWORD`. If not provided, it defaults to `admin123` for local development convenience.
+
+- Change it by setting `ADMIN_PASSWORD` in your environment or `.env`.
+- Example `.env`:
+  ```env
+  APP_SECRET=change-me
+  ADMIN_PASSWORD=super-strong-password
+  ALLOWED_IPS=127.0.0.1
+  ```
+- Purpose: to protect access to database operations in dev/test. It does not "phone home" or transmit data anywhere.
+- Recommendation: always set a strong `ADMIN_PASSWORD` and restrict access via `ALLOWED_IPS` in shared/staging environments.
+
 Credentials for MySQL are entered in the UI and stored in the session for the current flow.
 
 ## Security
@@ -55,6 +68,7 @@ Credentials for MySQL are entered in the UI and stored in the session for the cu
 - Security headers: CSP, Referrer-Policy, X-Frame-Options, Permissions-Policy
 - CSRF tokens and session hardening
 - Masking: auto-detects columns like `password`, `token`, `secret`, `api_key`, etc., and supports per-table overrides
+- Admin gate: requires the `ADMIN_PASSWORD` to access the app (default `admin123` only for local dev; override in `.env`).
 
 ## Development
 - Templates: League Plates (`views/`)

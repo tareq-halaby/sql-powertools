@@ -13,7 +13,7 @@
           <input type="password" name="password" class="rounded-xl border px-3 py-2 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" autofocus />
         </label>
         <button class="px-4 py-2 rounded-2xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900">🔐 Login</button>
-        <div class="text-xs text-slate-500 dark:text-slate-400">Tip: Set environment variable SAMPLER_PASSWORD to change the password.</div>
+        <div class="text-xs text-slate-500 dark:text-slate-400">Tip: Set environment variable ADMIN_PASSWORD to change the password.</div>
       </form>
     </div>
   </div>

@@ -31,7 +31,7 @@ function csrf_check(): bool {
     $token = $_POST['_csrf'] ?? '';
     return is_string($token) && hash_equals($_SESSION['_csrf'] ?? '', $token);
 }
-// Load .env (simple parser) so SAMPLER_PASSWORD can be read from a local .env file
+// Load .env (simple parser) so ADMIN_PASSWORD can be read from a local .env file
 function load_env_file(string $path): void {
     if (!is_file($path)) return;
     foreach (file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) {
@@ -61,7 +61,7 @@ header("Content-Security-Policy: default-src 'self' https://cdn.tailwindcss.com;
 
 // Simple auth configuration
 $REQUIRE_AUTH = true; // set to false to disable auth
-$CONFIG_PASSWORD = getenv('SAMPLER_PASSWORD') ?: ($_ENV['SAMPLER_PASSWORD'] ?? ($_SERVER['SAMPLER_PASSWORD'] ?? 'admin123'));
+$CONFIG_PASSWORD = getenv('ADMIN_PASSWORD') ?: ($_ENV['ADMIN_PASSWORD'] ?? ($_SERVER['ADMIN_PASSWORD'] ?? 'admin123'));
 $READ_ONLY = filter_var(getenv('READ_ONLY') ?: ($_ENV['READ_ONLY'] ?? 'false'), FILTER_VALIDATE_BOOLEAN);
 $DIAGRAM_ENABLED = filter_var(getenv('DIAGRAM_ENABLED') ?: ($_ENV['DIAGRAM_ENABLED'] ?? 'true'), FILTER_VALIDATE_BOOLEAN);
 // IP allowlist: comma-separated list in ALLOW_IPS
