@@ -69,13 +69,17 @@
         
 
         <div class="grid sm:grid-cols-3 gap-4">
-            <?php $this->insert('partials/select', [
-                'label' => 'Source database',
-                'name' => 'source_db',
-                'options' => array_map(fn($d) => ['value' => $d, 'label' => $d], $databases),
-                'value' => $post['source_db'] ?? '',
-                'required' => true,
-            ]); ?>
+            <label class="grid gap-1">
+                <span class="text-sm text-slate-600 dark:text-slate-300">Source database</span>
+                <?php $this->insert('partials/select', [
+                    'label' => '',
+                    'name' => 'source_db',
+                    'options' => array_map(fn($d) => ['value' => $d, 'label' => $d], $databases),
+                    'value' => $post['source_db'] ?? '',
+                    'required' => true,
+                ]); ?>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400">Source database</div>
+            </label>
             <label class="grid gap-1">
                 <span class="text-sm text-slate-600 dark:text-slate-300">Rows per table (max)</span>
                 <div class="flex items-stretch">
