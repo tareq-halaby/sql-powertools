@@ -76,18 +76,21 @@
                 'value' => $post['source_db'] ?? '',
                 'required' => true,
             ]); ?>
-            <?php $this->insert('partials/input', [
-                'label' => 'Rows per table (max)',
-                'name' => 'row_limit',
-                'type' => 'number',
-                'value' => $post['row_limit'] ?? '50',
-            ]); ?>
             <label class="grid gap-1">
-                <span class="text-sm text-slate-600 dark:text-slate-300">All rows</span>
-                <div class="flex items-center gap-2">
-                    <input id="chk_all_rows" name="all_rows" value="1" type="checkbox" class="h-4 w-4 accent-emerald-500" <?= !empty($post['all_rows']) ? 'checked' : '' ?> />
-                    <span class="text-xs text-slate-500 dark:text-slate-400">Omit LIMIT and copy every row</span>
+                <span class="text-sm text-slate-600 dark:text-slate-300">Rows per table (max)</span>
+                <div class="flex items-stretch">
+                    <input
+                        class="w-full rounded-l-xl border border-r-0 px-3 py-2 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+                        name="row_limit"
+                        type="number"
+                        value="<?= e((string)($post['row_limit'] ?? '50')) ?>"
+                    />
+                    <label for="chk_all_rows" class="inline-flex items-center gap-2 px-3 py-2 rounded-r-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                        <input id="chk_all_rows" name="all_rows" value="1" type="checkbox" class="h-4 w-4 accent-emerald-500" <?= !empty($post['all_rows']) ? 'checked' : '' ?> />
+                        <span class="text-xs">All rows</span>
+                    </label>
                 </div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400">Omit LIMIT and copy every row</div>
             </label>
             <label class="grid gap-1">
                 <div class="flex items-center justify-between">
