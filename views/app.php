@@ -82,6 +82,13 @@
                 'type' => 'number',
                 'value' => $post['row_limit'] ?? '50',
             ]); ?>
+            <label class="grid gap-1">
+                <span class="text-sm text-slate-600 dark:text-slate-300">All rows</span>
+                <div class="flex items-center gap-2">
+                    <input id="chk_all_rows" name="all_rows" value="1" type="checkbox" class="h-4 w-4 accent-emerald-500" <?= !empty($post['all_rows']) ? 'checked' : '' ?> />
+                    <span class="text-xs text-slate-500 dark:text-slate-400">Omit LIMIT and copy every row</span>
+                </div>
+            </label>
             <?php $this->insert('partials/select', [
                 'label' => 'Target database',
                 'name' => 'target_db',
@@ -267,7 +274,7 @@
         <input type="hidden" name="step" value="4" />
         <input type="hidden" name="_csrf"
             value="<?= htmlspecialchars($_SESSION['_csrf'] ?? '', ENT_QUOTES, 'UTF-8') ?>" />
-        <?php foreach (['db_host','db_port','db_user','source_db','row_limit','target_db'] as $k): ?>
+        <?php foreach (['db_host','db_port','db_user','source_db','row_limit','all_rows','target_db'] as $k): ?>
         <input type="hidden" name="<?= e($k) ?>" value="<?= e($post[$k] ?? '') ?>" />
         <?php endforeach; ?>
 
@@ -491,10 +498,20 @@
             const btn2 = document.getElementById('openMaskingHelp');
             const btn2b = document.getElementById('openMaskingHelp2');
             const detBtn = document.getElementById('openDetHelp');
+            const rowLimitInput = document.querySelector('#step2Form input[name="row_limit"]');
+            const allRowsChk = document.getElementById('chk_all_rows');
             const modal = document.getElementById('maskingModal');
             const maskChk = document.querySelector('input[name="mask_sensitive"]');
             const cancelBtns = modal ? Array.from(modal.querySelectorAll('[data-modal-cancel]')) : [];
             const confirmBtns = modal ? Array.from(modal.querySelectorAll('[data-modal-confirm]')) : [];
+            function syncAllRowsState(){
+                if (!rowLimitInput || !allRowsChk) return;
+                const on = !!allRowsChk.checked;
+                rowLimitInput.disabled = on;
+                rowLimitInput.classList.toggle('opacity-50', on);
+            }
+            allRowsChk?.addEventListener('change', syncAllRowsState);
+            syncAllRowsState();
             function open(){
                 if (!modal) return;
                 // Filter table blocks by current selection

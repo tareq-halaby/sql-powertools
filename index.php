@@ -815,13 +815,14 @@ try {
         if ($READ_ONLY) { throw new RuntimeException('Read-only mode is enabled. Cloning is disabled on this environment.'); }
         $sourceDB = $_POST['source_db'] ?? '';
         $targetDB = trim($_POST['target_db'] ?? ($sourceDB . '_sample'));
+        $allRows = (($_POST['all_rows'] ?? '') === '1');
         $rowLimit = max(0, (int)($_POST['row_limit'] ?? 50));
         $selectedTables = $_POST['tables'] ?? [];
         $maskSensitive = (($_POST['mask_sensitive'] ?? '') === '1');
         $orderByPk = (($_POST['order_by_pk'] ?? '') === '1');
 
         if (!$sourceDB) throw new RuntimeException('Missing source database.');
-        if ($rowLimit <= 0) throw new RuntimeException('Row limit must be > 0.');
+        if (!$allRows && $rowLimit <= 0) throw new RuntimeException('Row limit must be > 0.');
 
         $pdo = pdo_connect();
         create_target_db($pdo, $targetDB);
@@ -831,7 +832,12 @@ try {
             $selectedTables = get_tables(pdo_connect($sourceDB), $sourceDB);
         }
 
-        $report = clone_structure_and_copy_rows($pdo, $sourceDB, $targetDB, $selectedTables, $rowLimit, $orderByPk);
+        // When all rows is requested, pass a very large limit sentinel and disable deterministic ordering effect on LIMIT size
+        if ($allRows) {
+            $report = clone_structure_and_copy_rows($pdo, $sourceDB, $targetDB, $selectedTables, PHP_INT_MAX, false);
+        } else {
+            $report = clone_structure_and_copy_rows($pdo, $sourceDB, $targetDB, $selectedTables, $rowLimit, $orderByPk);
+        }
         if ($maskSensitive) {
             try {
                 // Only mask when user explicitly selected columns via overrides
