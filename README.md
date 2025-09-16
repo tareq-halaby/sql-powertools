@@ -1,82 +1,103 @@
-# SQL PowerTools
+# SQL PowerTools ⚡️
 
-SQL PowerTools is a lightweight PHP web app to safely clone, export, and back up MySQL databases with security-first features like sensitive data masking, session-backed credentials, and secure mysqldump execution.
+Safely clone, export, and back up MySQL databases — with security-first features like sensitive data masking, session-backed credentials, and secure mysqldump execution.
 
-## Features
-- Clone structure and copy a sampled subset of rows from selected tables (X rows per table)
-- Deterministic sampling (ORDER BY primary key)
-- Full backups (schema + data) with optional masking
-- Sensitive column auto-detection and per-table overrides
-- Secure mysqldump via temporary defaults file (no creds in args)
-- Session-backed DB credentials; security headers; CSRF protection
-- Dark mode UI with modern, consistent UX
+## ✨ Features
 
-## Requirements
+- 🧪 Clone structure and sample X rows per table
+- 🎯 Deterministic sampling (ORDER BY primary key)
+- 💾 Full backups (schema + data), optional gzip
+- 🔒 Sensitive column auto-detection + per-table overrides
+- 🛡️ Secure mysqldump via defaults file (no creds in args)
+- 🔐 Session-backed DB creds, CSRF, and security headers
+- 🌙 Polished dark/light UI
+
+## 📦 Requirements
+
 - PHP 8.0+
 - MySQL 5.7+/8.x with access to `information_schema`
-- `mysqldump` available in PATH
+- `mysqldump` available in PATH (auto-discovered on WAMP)
 
-## Quick Start
-1. Clone the repo and install dependencies.
+## 🚀 Quick Start
+
+1. Clone and install
+
 ```bash
 git clone https://github.com/<your-org>/sql-powertools.git
 cd sql-powertools
 composer install
 ```
-2. Configure environment.
+
+1. Configure environment
+
 ```bash
 cp .env.example .env
 # Edit .env as needed
 ```
-3. Serve locally (e.g., built-in PHP server):
+
+1. Serve locally
+
 ```bash
 php -S localhost:8080 -t .
 ```
-Visit `http://localhost:8080`.
 
-## Usage (Sampling X rows)
+Open <http://localhost:8080>
+
+## 🧭 Usage (Sampling X rows)
+
 1. Connect to MySQL (Step 1) and choose the source database (Step 2).
-2. Set "Rows per table (max)" to the sample size X.
-3. Pick or create a target database (e.g., `<source>_sample`).
-4. In Step 3, choose "Clone sample", then select tables to include.
-5. Optional: Enable "Deterministic (ORDER BY PK)" for reproducible samples.
-6. Optional: Enable "Mask password-like columns" and adjust per-table overrides.
-7. Click "Clone Sample". A report will show what was created and how many rows were copied.
+2. Set “Rows per table (max)” or check “All rows” to omit LIMIT.
+3. Pick/create a target database (e.g., `<source>_sample`).
+4. In Step 3, choose “Clone sample” and select tables.
+5. Optional: enable “Deterministic (ORDER BY PK)” for reproducible samples.
+6. Optional: enable “Mask password-like columns” and override per-table columns.
+7. Click “Clone Sample” and review the report.
 
-## Environment
-Copy `.env.example` to `.env` and set:
-- `APP_SECRET`: CSRF/session secret
-- `ALLOWED_IPS`: Comma-separated allowlist (optional)
+## 🔧 Environment
 
-### Authentication and Default Password
-This app includes a simple admin gate to prevent drive-by access on shared machines. The password is read from the environment variable `ADMIN_PASSWORD`. If not provided, it defaults to `admin123` for local development convenience.
+Copy `.env.example` to `.env` and set the values that fit your setup.
 
-- Change it by setting `ADMIN_PASSWORD` in your environment or `.env`.
-- Example `.env`:
-  ```env
-  APP_SECRET=change-me
-  ADMIN_PASSWORD=super-strong-password
-  ALLOWED_IPS=127.0.0.1
-  ```
-- Purpose: to protect access to database operations in dev/test. It does not "phone home" or transmit data anywhere.
-- Recommendation: always set a strong `ADMIN_PASSWORD` and restrict access via `ALLOWED_IPS` in shared/staging environments.
+### Example .env
 
-Credentials for MySQL are entered in the UI and stored in the session for the current flow.
+```env
+# Admin gate
+ADMIN_PASSWORD=change-me-please
 
-## Security
-- No passwords in command args; uses `--defaults-extra-file`
-- Security headers: CSP, Referrer-Policy, X-Frame-Options, Permissions-Policy
+# Allow only these IPs (optional, comma-separated)
+ALLOWED_IPS=127.0.0.1,::1
+
+# Toggle features/behaviors
+READ_ONLY=false            # true disables cloning
+DIAGRAM_ENABLED=true       # enable Mermaid ER diagram
+
+# Defaults for Step 1 convenience (no secrets)
+DEFAULT_DB_HOST=localhost
+DEFAULT_DB_PORT=3306
+DEFAULT_DB_USER=
+
+# mysqldump discovery/override
+MYSQLDUMP_PATH=            # leave blank to auto-detect or use PATH
+```
+
+### Authentication and default password
+
+The app has a simple admin gate to avoid drive-by access on shared machines. Set `ADMIN_PASSWORD` in `.env`. If not set, it defaults to `admin123` for local development — change it.
+
+This tool does not phone home or transmit any data.
+
+## 🛡️ Security
+
+- No passwords in command args (uses `--defaults-extra-file`)
+- Security headers (CSP, Referrer-Policy, X-Frame-Options, Permissions-Policy)
 - CSRF tokens and session hardening
-- Masking: auto-detects columns like `password`, `token`, `secret`, `api_key`, etc., and supports per-table overrides
-- Admin gate: requires the `ADMIN_PASSWORD` to access the app (default `admin123` only for local dev; override in `.env`).
+- Masking auto-detects columns like `password`, `token`, `secret`, `api_key`, etc., plus per-table overrides
 
-## Development
+## 🧱 Architecture
+
 - Templates: League Plates (`views/`)
-- PHP single entry: `index.php`
-- Frontend: Tailwind via CDN, vanilla JS
+- Single entry: `index.php`
+- UI: Tailwind via CDN + vanilla JS
 
-## License
-MIT. See `LICENSE`.
+## 📄 License
 
-
-
+MIT — see `LICENSE`.
