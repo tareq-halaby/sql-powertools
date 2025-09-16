@@ -89,12 +89,19 @@
                     <span class="text-xs text-slate-500 dark:text-slate-400">Omit LIMIT and copy every row</span>
                 </div>
             </label>
-            <?php $this->insert('partials/select', [
-                'label' => 'Target database',
-                'name' => 'target_db',
-                'options' => array_map(fn($d) => ['value' => $d, 'label' => $d], $databases),
-                'value' => $post['target_db'] ?? '',
-            ]); ?>
+            <label class="grid gap-1">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-600 dark:text-slate-300">Target database</span>
+                    <button type="button" id="openCreateDbInline" class="text-[11px] px-2 py-0.5 rounded-lg border dark:border-slate-700">➕ New</button>
+                </div>
+                <?php $this->insert('partials/select', [
+                    'label' => '',
+                    'name' => 'target_db',
+                    'options' => array_map(fn($d) => ['value' => $d, 'label' => $d], $databases),
+                    'value' => $post['target_db'] ?? '',
+                ]); ?>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400" id="targetPreview">&nbsp;</div>
+            </label>
         </div>
         <div class="hidden"></div>
     </form>
@@ -121,6 +128,7 @@
     <script>
         (function() {
             const openBtn = document.getElementById('openCreateDb');
+            const openBtnInline = document.getElementById('openCreateDbInline');
             const modal = document.getElementById('createTargetDbModal');
             const cancelBtns = modal ? Array.from(modal.querySelectorAll('[data-modal-cancel]')) : [];
             const confirmBtns = modal ? Array.from(modal.querySelectorAll('[data-modal-confirm]')) : [];
@@ -128,6 +136,7 @@
             const targetSelect = document.getElementById('sel_target_db');
             const sourceSelect = document.getElementById('sel_source_db');
             const loadBtn = document.getElementById('btnLoadTables');
+            const targetPreview = document.getElementById('targetPreview');
 
             function open() {
                 if (modal) {
@@ -168,8 +177,10 @@
                     targetSelect.value = name;
                 }
                 close();
+                renderPreview();
             }
             openBtn?.addEventListener('click', open);
+            openBtnInline?.addEventListener('click', open);
             cancelBtns.forEach(btn => btn.addEventListener('click', close));
             confirmBtns.forEach(btn => btn.addEventListener('click', confirm));
             modal?.addEventListener('click', (e) => {
@@ -177,7 +188,17 @@
             });
             sourceSelect?.addEventListener('change', validate);
             targetSelect?.addEventListener('change', validate);
+            function renderPreview(){
+                if (!targetPreview) return;
+                const src = sourceSelect?.value || '';
+                const tgt = targetSelect?.value || '';
+                const willUse = (tgt || (src ? src + '_sample' : ''));
+                targetPreview.textContent = willUse ? ('Will use: ' + willUse) : '';
+            }
+            sourceSelect?.addEventListener('change', renderPreview);
+            targetSelect?.addEventListener('change', renderPreview);
             validate();
+            renderPreview();
         })();
     </script>
     <?php return ob_get_clean(); })()
