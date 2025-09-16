@@ -186,7 +186,7 @@
                 close();
                 renderPreview();
             }
-            openBtn?.addEventListener('click', open);
+            // Footer button removed; keep inline trigger
             openBtnInline?.addEventListener('click', open);
             cancelBtns.forEach(btn => btn.addEventListener('click', close));
             confirmBtns.forEach(btn => btn.addEventListener('click', confirm));
@@ -213,7 +213,6 @@
         'footer' => (function(){ ob_start(); ?>
           <div class="flex gap-3">
             <button type="submit" form="step2Form" class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900" id="btnLoadTables">📥 Load Tables</button>
-            <button type="button" class="px-4 py-2 rounded-2xl text-sm border dark:border-slate-700" id="openCreateDb">➕ Create database</button>
           </div>
         <?php return ob_get_clean(); })()
       ]); ?>
