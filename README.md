@@ -23,7 +23,7 @@ Safely clone, export, and back up MySQL databases — with security-first featur
 1. Clone and install
 
 ```bash
-git clone https://github.com/<your-org>/sql-powertools.git
+git clone https://github.com/tareq-halaby/sql-powertools.git
 cd sql-powertools
 composer install
 ```
