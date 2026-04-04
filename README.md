@@ -113,3 +113,14 @@ Contributions are welcome! Here's how to get started:
 5. Open a Pull Request against the `main` branch
 
 Please make sure your code follows the existing style, and that sensitive data handling remains intact. Bug reports and feature suggestions are also appreciated via [GitHub Issues](https://github.com/tareq-halaby/sql-powertools/issues).
+
+
+## 📜 Changelog
+
+### v1.0.0 — 2026-04-04
+- Initial public release
+- Secure MySQL clone, export, and backup via a lightweight PHP web app
+- Sensitive column auto-detection with per-table masking overrides
+- Session-backed credentials, CSRF protection, and security headers
+- Dark/light UI toggle with Tailwind CSS
+- Support for `mysqldump` auto-discovery on WAMP environments
