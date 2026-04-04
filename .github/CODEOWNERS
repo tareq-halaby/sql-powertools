@@ -1,0 +1,23 @@
+# CODEOWNERS
+# This file defines code ownership for the sql-powertools repository.
+# Owners are automatically requested for review when someone opens a PR.
+
+# Global owners - these users own everything in the repo
+* @tareq-halaby
+
+# Documentation
+/docs/ @tareq-halaby
+*.md @tareq-halaby
+
+# Core application
+/views/ @tareq-halaby
+index.php @tareq-halaby
+
+# Configuration
+*.json @tareq-halaby
+*.lock @tareq-halaby
+.env.example @tareq-halaby
+
+# Security-sensitive files
+SECURITY.md @tareq-halaby
+.github/ @tareq-halaby
