@@ -101,3 +101,15 @@ This tool does not phone home or transmit any data.
 ## 📄 License
 
 MIT — see `LICENSE`.
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how to get started:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Commit your changes with clear messages: `git commit -m 'feat: add your feature'`
+4. Push to your fork: `git push origin feature/your-feature-name`
+5. Open a Pull Request against the `main` branch
+
+Please make sure your code follows the existing style, and that sensitive data handling remains intact. Bug reports and feature suggestions are also appreciated via [GitHub Issues](https://github.com/tareq-halaby/sql-powertools/issues).
