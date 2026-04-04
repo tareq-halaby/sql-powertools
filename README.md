@@ -1,4 +1,4 @@
-# SQL PowerTools ⚡️
+# SQL PowerTools ⚡️ 
 
 Safely clone, export, and back up MySQL databases — with security-first features like sensitive data masking, session-backed credentials, and secure mysqldump execution.
 
