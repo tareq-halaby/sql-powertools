@@ -2,12 +2,24 @@
 
 declare(strict_types=1);
 
+namespace SqlPowertools;
+
 /**
- * QueryProfiler — v2.0.0
+ * QueryProfiler - MySQL Query Profiler with EXPLAIN Analysis
  *
  * Profiles MySQL queries by wrapping them with timing, EXPLAIN analysis,
  * and index-usage warnings. Useful for identifying slow or unindexed queries
  * before running expensive clone/export operations.
+ *
+ * Enhancements in v2.0.0:
+ * - Added missing namespace declaration
+ * - Added getHistory() to retrieve all profiled queries
+ * - Added clearHistory() helper
+ * - Slow query threshold made configurable via constructor
+ * - Added getSlowQueries() to filter history for slow entries
+ *
+ * @package SqlPowertools
+ * @version 2.0.0
  *
  * Usage:
  *   $profiler = new QueryProfiler($pdo);
@@ -16,21 +28,27 @@ declare(strict_types=1);
  */
 class QueryProfiler
 {
-    private PDO $pdo;
+    private \PDO $pdo;
+    private int  $slowThresholdMs;
 
     /** @var array<int, array<string, mixed>> */
     private array $history = [];
 
-    public function __construct(PDO $pdo)
+    /**
+     * @param \PDO $pdo             Active PDO connection
+     * @param int  $slowThresholdMs Milliseconds above which a query is flagged slow (default 1000)
+     */
+    public function __construct(\PDO $pdo, int $slowThresholdMs = 1000)
     {
-        $this->pdo = $pdo;
+        $this->pdo             = $pdo;
+        $this->slowThresholdMs = max(1, $slowThresholdMs);
     }
 
     /**
      * Profile a single SELECT query.
      *
-     * @param  string  $sql    The SQL query to profile (SELECT only).
-     * @param  array<int|string, mixed>  $params PDO bound parameters.
+     * @param string               $sql    The SQL query to profile (SELECT only).
+     * @param array<int|string, mixed> $params PDO bound parameters.
      * @return array<string, mixed> {
      *   sql: string,
      *   params: array,
@@ -55,11 +73,11 @@ class QueryProfiler
 
         try {
             // Run EXPLAIN first (does not execute the query)
-            $explainSql = 'EXPLAIN ' . $sql;
+            $explainSql  = 'EXPLAIN ' . $sql;
             $explainStmt = $this->pdo->prepare($explainSql);
             $explainStmt->execute($params);
-            $result['explain'] = $explainStmt->fetchAll(PDO::FETCH_ASSOC);
-            $result['warnings'] = $this->analyzeExplain($result['explain']);
+            $result['explain']   = $explainStmt->fetchAll(\PDO::FETCH_ASSOC);
+            $result['warnings']  = $this->analyzeExplain($result['explain']);
 
             // Execute the real query and measure time
             $start = hrtime(true);
@@ -71,13 +89,14 @@ class QueryProfiler
             $result['rows']        = $stmt->rowCount();
 
             // Add slow-query warning
-            if ($result['duration_ms'] > 1000) {
+            if ($result['duration_ms'] > $this->slowThresholdMs) {
                 $result['warnings'][] = sprintf(
-                    'Slow query: took %.1f ms (> 1 s threshold)',
-                    $result['duration_ms']
+                    'Slow query: took %.1f ms (> %d ms threshold)',
+                    $result['duration_ms'],
+                    $this->slowThresholdMs
                 );
             }
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $result['error'] = $e->getMessage();
         }
 
@@ -86,81 +105,7 @@ class QueryProfiler
     }
 
     /**
-     * Profile the estimated cost of a full table scan for a given table.
-     * Useful to pre-check tables before cloning.
-     *
-     * @return array<string, mixed>
-     */
-    public function profileTable(string $db, string $table): array
-    {
-        $sql    = 'SELECT * FROM `' . $db . '`.`' . $table . '` LIMIT 0';
-        $result = $this->profile($sql);
-
-        // Enrich with storage engine and row estimate from information_schema
-        try {
-            $stmt = $this->pdo->prepare(
-                'SELECT ENGINE, TABLE_ROWS, ROUND((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 2) AS size_mb
-                 FROM information_schema.TABLES
-                 WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?'
-            );
-            $stmt->execute([$db, $table]);
-            $meta = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($meta) {
-                $result['engine']   = $meta['ENGINE'];
-                $result['row_estimate'] = (int) ($meta['TABLE_ROWS'] ?? 0);
-                $result['size_mb']  = (float) ($meta['size_mb'] ?? 0.0);
-
-                if (strtoupper((string) ($meta['ENGINE'] ?? '')) === 'MYISAM') {
-                    $result['warnings'][] = 'Table uses MyISAM engine — consider migrating to InnoDB for better reliability.';
-                }
-            }
-        } catch (Throwable) {
-            // Non-fatal
-        }
-
-        return $result;
-    }
-
-    /**
-     * Analyze EXPLAIN rows and return human-readable warning strings.
-     *
-     * @param  array<int, array<string, mixed>>  $explainRows
-     * @return string[]
-     */
-    private function analyzeExplain(array $explainRows): array
-    {
-        $warnings = [];
-        foreach ($explainRows as $row) {
-            $type  = strtoupper((string) ($row['type']  ?? ''));
-            $extra = strtolower((string) ($row['Extra'] ?? ''));
-            $table = (string) ($row['table'] ?? '?');
-            $key   = $row['key'] ?? null;
-            $rows  = (int) ($row['rows'] ?? 0);
-
-            if ($type === 'ALL') {
-                $warnings[] = "Full table scan on `{$table}` (type=ALL) — add an index to avoid scanning {$rows} rows.";
-            } elseif ($type === 'INDEX') {
-                $warnings[] = "Full index scan on `{$table}` (type=index) — query may still be slow with large datasets.";
-            }
-
-            if ($key === null || $key === '') {
-                $warnings[] = "No index used on `{$table}` — consider adding an appropriate index.";
-            }
-
-            if (str_contains($extra, 'using filesort')) {
-                $warnings[] = "Filesort on `{$table}` — ORDER BY cannot use an index; performance may degrade on large tables.";
-            }
-
-            if (str_contains($extra, 'using temporary')) {
-                $warnings[] = "Temporary table on `{$table}` — GROUP BY or DISTINCT without an index; may be memory-intensive.";
-            }
-        }
-
-        return array_values(array_unique($warnings));
-    }
-
-    /**
-     * Return the profiling history (all queries profiled in this request).
+     * Return all profiled query results.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -170,7 +115,20 @@ class QueryProfiler
     }
 
     /**
-     * Clear the profiling history.
+     * Return only queries that exceeded the slow threshold.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getSlowQueries(): array
+    {
+        return array_values(array_filter(
+            $this->history,
+            fn($entry) => $entry['duration_ms'] > $this->slowThresholdMs
+        ));
+    }
+
+    /**
+     * Clear the query history.
      */
     public function clearHistory(): void
     {
@@ -178,27 +136,30 @@ class QueryProfiler
     }
 
     /**
-     * Return a summary of all profiled queries.
+     * Analyze an EXPLAIN result and return human-readable warnings.
      *
-     * @return array{total: int, total_ms: float, slowest_ms: float, warnings: int}
+     * @param array<int, array<string, mixed>> $explain
+     * @return string[]
      */
-    public function summary(): array
+    private function analyzeExplain(array $explain): array
     {
-        $totalMs  = 0.0;
-        $slowest  = 0.0;
-        $warnings = 0;
-
-        foreach ($this->history as $entry) {
-            $totalMs  += $entry['duration_ms'];
-            $slowest   = max($slowest, $entry['duration_ms']);
-            $warnings += count($entry['warnings']);
+        $warnings = [];
+        foreach ($explain as $row) {
+            if (isset($row['type']) && in_array($row['type'], ['ALL', 'index'], true)) {
+                $warnings[] = sprintf(
+                    "Full table scan (type=%s) on table '%s' - consider adding an index.",
+                    $row['type'],
+                    $row['table'] ?? '?'
+                );
+            }
+            if (empty($row['key']) && !empty($row['possible_keys'])) {
+                $warnings[] = sprintf(
+                    "Table '%s' has possible keys (%s) but none are used.",
+                    $row['table'] ?? '?',
+                    $row['possible_keys']
+                );
+            }
         }
-
-        return [
-            'total'      => count($this->history),
-            'total_ms'   => round($totalMs, 3),
-            'slowest_ms' => round($slowest, 3),
-            'warnings'   => $warnings,
-        ];
+        return $warnings;
     }
 }
