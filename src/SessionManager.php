@@ -1,21 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
+namespace SqlPowertools;
+
 /**
- * SessionManager
+ * SessionManager - Secure PHP Session Management Utility
  *
- * Handles secure session management for SQL PowerTools.
- * Wraps PHP sessions with security best practices.
+ * Wraps PHP sessions with security best practices including
+ * hardened cookie settings, session fixation prevention,
+ * and flash message support.
+ *
+ * Enhancements in v2.0.0:
+ * - Added declare(strict_types=1) and namespace
+ * - Fixed start() to use session_status() instead of custom flag
+ * - Added flash() and getFlash() for one-time messages
+ * - Added getId() to retrieve current session ID
+ * - Added pull() for read-and-remove pattern
+ * - Added key validation in set()
+ *
+ * @package SqlPowertools
+ * @version 2.0.0
  */
 class SessionManager
 {
-    private static bool $started = false;
-
     /**
      * Start a secure session with hardened settings.
+     * Safe to call multiple times; will not restart an active session.
      */
     public static function start(): void
     {
-        if (self::$started) {
+        if (session_status() === PHP_SESSION_ACTIVE) {
             return;
         }
 
@@ -26,14 +41,27 @@ class SessionManager
         ini_set('session.gc_maxlifetime', '3600');
 
         session_start();
-        self::$started = true;
+    }
+
+    /**
+     * Get the current session ID.
+     */
+    public static function getId(): string
+    {
+        self::start();
+        return session_id();
     }
 
     /**
      * Set a session value.
+     *
+     * @throws \InvalidArgumentException if the key is empty
      */
     public static function set(string $key, mixed $value): void
     {
+        if ($key === '') {
+            throw new \InvalidArgumentException('Session key must not be empty.');
+        }
         self::start();
         $_SESSION[$key] = $value;
     }
@@ -42,13 +70,27 @@ class SessionManager
      * Get a session value.
      *
      * @param string $key
-     * @param mixed $default
+     * @param mixed  $default Value returned when the key is not set
      * @return mixed
      */
     public static function get(string $key, mixed $default = null): mixed
     {
         self::start();
-        return $_SESSION[$key] ?? $default;
+        return array_key_exists($key, $_SESSION) ? $_SESSION[$key] : $default;
+    }
+
+    /**
+     * Get and remove a session value in one operation.
+     *
+     * @param string $key
+     * @param mixed  $default Value returned when the key is not set
+     * @return mixed
+     */
+    public static function pull(string $key, mixed $default = null): mixed
+    {
+        $value = self::get($key, $default);
+        self::remove($key);
+        return $value;
     }
 
     /**
@@ -57,7 +99,7 @@ class SessionManager
     public static function has(string $key): bool
     {
         self::start();
-        return isset($_SESSION[$key]);
+        return array_key_exists($key, $_SESSION);
     }
 
     /**
@@ -74,10 +116,11 @@ class SessionManager
      */
     public static function destroy(): void
     {
-        self::start();
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return;
+        }
         $_SESSION = [];
         session_destroy();
-        self::$started = false;
     }
 
     /**
@@ -87,5 +130,31 @@ class SessionManager
     {
         self::start();
         session_regenerate_id(true);
+    }
+
+    /**
+     * Store a flash message (one-time, cleared after retrieval).
+     *
+     * @param string $type  Arbitrary category, e.g. 'success', 'error'
+     * @param string $message
+     */
+    public static function flash(string $type, string $message): void
+    {
+        self::start();
+        $_SESSION['__flash'][$type][] = $message;
+    }
+
+    /**
+     * Retrieve and clear flash messages of a given type.
+     *
+     * @param string $type
+     * @return string[]
+     */
+    public static function getFlash(string $type): array
+    {
+        self::start();
+        $messages = $_SESSION['__flash'][$type] ?? [];
+        unset($_SESSION['__flash'][$type]);
+        return $messages;
     }
 }
