@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- PHP 8.0 or higher
+- PHP 8.1 or higher
 - MySQL 5.7 or higher (or MariaDB 10.3+)
 - Composer
 - A web server (Apache, Nginx, PHP built-in server, or WAMP/XAMPP)
