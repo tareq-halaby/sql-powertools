@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarify `.env.example` defaults for local development
 - Require PHP 8.1+ (matches `readonly` constructor properties in source)
 - CI: use `actions/checkout@v5` (Node 24), pin `ubuntu-24.04`, add PHP 8.4
+- `composer lint` / `composer test` scripts (`bin/lint.php`) used by CI
 
 ## [1.0.0] - 2025-01-01
 

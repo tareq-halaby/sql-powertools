@@ -121,7 +121,13 @@ Contributions are welcome! Here's how to get started:
 4. Push to your fork: `git push origin feature/your-feature-name`
 5. Open a Pull Request against the `main` branch
 
-Please make sure your code follows the existing style, and that sensitive data handling remains intact. Bug reports and feature suggestions are also appreciated via [GitHub Issues](https://github.com/tareq-halaby/sql-powertools/issues).
+Please make sure your code follows the existing style, and that sensitive data handling remains intact. Before opening a PR, run:
+
+```bash
+composer test
+```
+
+Bug reports and feature suggestions are also appreciated via [GitHub Issues](https://github.com/tareq-halaby/sql-powertools/issues). Looking to pair on a change? Open a draft PR and add a `Co-authored-by` trailer — see [good first issues](https://github.com/tareq-halaby/sql-powertools/labels/good%20first%20issue).
 
 
 ## Changelog
