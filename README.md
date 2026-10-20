@@ -20,7 +20,7 @@ Local and staging databases often contain production-like data. SQL PowerTools h
 
 ## Requirements
 
-- PHP 8.0+
+- PHP 8.1+
 - MySQL 5.7+/8.x with access to `information_schema`
 - `mysqldump` available in PATH (auto-discovered on WAMP)
 

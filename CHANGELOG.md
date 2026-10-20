@@ -10,13 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - FAQ documentation for common user questions
 - Enhanced security policy documentation
-- GitHub Actions CI (Composer validate + PHP lint across 8.0–8.3)
+- GitHub Actions CI (Composer validate + PHP lint across 8.1–8.3)
 - Full environment variable reference in configuration docs
 
 ### Fixed
 - Align docs with code: use `ALLOW_IPS` (not `ALLOWED_IPS`)
 - Clarify `.env.example` defaults for local development
-- Correct installation PHP requirement to 8.0+
+- Require PHP 8.1+ (matches `readonly` constructor properties in source)
 
 ## [1.0.0] - 2025-01-01
 
