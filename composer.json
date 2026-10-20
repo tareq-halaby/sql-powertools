@@ -37,7 +37,8 @@
         "serve": "php -S localhost:8080 -t .",
         "lint": "php bin/lint.php",
         "test": [
-            "@lint"
+            "@lint",
+            "php tests/CloneReportBuilderTest.php"
         ]
     }
 }
