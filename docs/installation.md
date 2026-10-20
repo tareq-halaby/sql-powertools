@@ -2,11 +2,11 @@
 
 ## Requirements
 
-- PHP 7.4 or higher
+- PHP 8.0 or higher
 - MySQL 5.7 or higher (or MariaDB 10.3+)
 - Composer
-- A web server (Apache, Nginx, or WAMP/XAMPP)
-- `mysqldump` available in PATH (for export/backup features)
+- A web server (Apache, Nginx, PHP built-in server, or WAMP/XAMPP)
+- `mysqldump` available in `PATH` (for export/backup features)
 
 ## Quick Start
 
