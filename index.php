@@ -403,12 +403,20 @@ function clone_structure_and_copy_rows(PDO $rootPdo, string $sourceDB, string $t
 
 /**
  * After data is copied to target, mask sensitive columns by overwriting values.
+ *
+ * @param array<string, list<string>> $tableToColumns
+ * @return array<string, list<string>> Successfully masked columns per table
  */
-function apply_masking(PDO $pdoTarget, string $targetDB, array $tableToColumns): void {
-    if (empty($tableToColumns)) return;
+function apply_masking(PDO $pdoTarget, string $targetDB, array $tableToColumns): array {
+    $masked = [];
+    if (empty($tableToColumns)) {
+        return $masked;
+    }
     foreach ($tableToColumns as $table => $cols) {
         $cols = array_values(array_unique(array_filter(array_map('strval', $cols))));
-        if (empty($cols)) continue;
+        if (empty($cols)) {
+            continue;
+        }
         // Build SET clause like: `c1`=REPEAT('*',12), `c2`=REPEAT('*',12)
         $sets = [];
         foreach ($cols as $c) {
@@ -417,10 +425,12 @@ function apply_masking(PDO $pdoTarget, string $targetDB, array $tableToColumns):
         $sql = "UPDATE `".$targetDB."`.`".$table."` SET ".implode(', ', $sets);
         try {
             $pdoTarget->exec($sql);
+            $masked[$table] = $cols;
         } catch (Throwable $ex) {
             // Ignore masking errors per table/column to avoid failing the whole run
         }
     }
+    return $masked;
 }
 
 /**
@@ -470,6 +480,8 @@ $step = (int)($_POST['step'] ?? 1);
 $error = null;
 $databases = $tables = $report = [];
 $rowEstimates = [];
+$maskedColumns = [];
+$exportJson = false;
 $mermaid = '';
 
 try {
@@ -529,6 +541,27 @@ try {
             'error' => $authError,
         ]);
         return;
+    }
+
+    // Download machine-readable clone / masking report (JSON)
+    if (($_POST['action'] ?? '') === 'download_report_json') {
+        if (!csrf_check()) { http_response_code(400); exit('Bad Request'); }
+        $payload = $_SESSION['last_clone_report'] ?? null;
+        if (!is_array($payload)) {
+            http_response_code(404);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['error' => 'No clone report available. Run a clone first.'], JSON_UNESCAPED_SLASHES);
+            exit;
+        }
+        $sourceDB = (string) ($payload['source_db'] ?? 'clone');
+        $filename = $sourceDB . '_clone_report_' . date('Ymd_His') . '.json';
+        while (ob_get_level()) { @ob_end_clean(); }
+        header('Content-Type: application/json; charset=utf-8');
+        header('Content-Disposition: attachment; filename=' . $filename);
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: no-store');
+        echo (new \SqlPowertools\CloneReportBuilder())->toJson($payload);
+        exit;
     }
 
     // Download sampled SQL (mysqldump of target DB)
@@ -820,6 +853,7 @@ try {
         $selectedTables = $_POST['tables'] ?? [];
         $maskSensitive = (($_POST['mask_sensitive'] ?? '') === '1');
         $orderByPk = (($_POST['order_by_pk'] ?? '') === '1');
+        $exportJson = (($_POST['export_json'] ?? '') === '1');
 
         if (!$sourceDB) throw new RuntimeException('Missing source database.');
         if (!$allRows && $rowLimit <= 0) throw new RuntimeException('Row limit must be > 0.');
@@ -847,12 +881,12 @@ try {
                     $overrides[$tbl] = array_values(array_unique(array_filter(array_map('strval', (array)$cols))));
                 }
                 if (!empty($overrides)) {
-                    apply_masking(pdo_connect($targetDB), $targetDB, $overrides);
+                    $maskedColumns = apply_masking(pdo_connect($targetDB), $targetDB, $overrides);
                 } elseif (($_POST['mask_autodetect'] ?? '') === '1' || empty($overrides)) {
                     // Auto-detect sensitive columns for selected tables only (default fallback when none selected)
                     $detected = detect_sensitive_columns(pdo_connect($sourceDB), $sourceDB, $selectedTables);
                     if (!empty($detected)) {
-                        apply_masking(pdo_connect($targetDB), $targetDB, $detected);
+                        $maskedColumns = apply_masking(pdo_connect($targetDB), $targetDB, $detected);
                     }
                 }
             } catch (Throwable $ex) {
@@ -861,6 +895,15 @@ try {
         }
         // Also compute approximate totals for display in the report
         $rowEstimates = get_table_row_estimates($pdo, $sourceDB);
+        $reportBuilder = new \SqlPowertools\CloneReportBuilder();
+        $_SESSION['last_clone_report'] = $reportBuilder->build(
+            $sourceDB,
+            $targetDB,
+            $allRows ? 'all' : $rowLimit,
+            $report,
+            $maskedColumns,
+            $rowEstimates
+        );
         // ER diagram for convenience
         if ($DIAGRAM_ENABLED) {
             $relations = get_fk_relations($pdo, $sourceDB);
@@ -886,6 +929,8 @@ $body = $templates->render('app', [
     'report' => $report,
     'post' => $_POST,
     'rowEstimates' => $rowEstimates,
+    'maskedColumns' => $maskedColumns,
+    'exportJson' => $exportJson,
     'sensitiveColsByTable' => $sensitiveColsByTable ?? [],
     'mermaid' => $mermaid,
     'diagramEnabled' => $DIAGRAM_ENABLED,

@@ -1,4 +1,5 @@
-<?php /** @var int $step */ /** @var ?string $error */ /** @var array $databases */ /** @var array $report */ /** @var array $post */ /** @var array $rowEstimates */ /** @var string $mermaid */ ?>
+<?php /** @var int $step */ /** @var ?string $error */ /** @var array $databases */ /** @var array $report */ /** @var array $post */ /** @var array $rowEstimates */ /** @var array $maskedColumns */ /** @var bool $exportJson */ /** @var string $mermaid */ ?>
+<?php $maskedColumns = $maskedColumns ?? []; $exportJson = !empty($exportJson); ?>
 
 <div class="grid gap-6">
 
@@ -437,6 +438,20 @@
                 </div>
             </div>
             <?php endif; ?>
+        </div>
+        <div id="jsonReportPanel" class="text-xs bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
+            <div class="flex items-center justify-between gap-3 text-slate-600 dark:text-slate-400">
+                <div>
+                    <div class="text-slate-700 dark:text-slate-300 mb-1 font-medium font-bold">JSON clone report</div>
+                    <div class="text-slate-600 dark:text-slate-400">Export a machine-readable summary of tables cloned, rows copied, and masked columns (handy for CI).</div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <label class="inline-flex items-center gap-1 text-[11px] text-slate-700 dark:text-slate-300 cursor-pointer" title="After cloning, download a JSON report of tables, row counts, and masked columns.">
+                        <input type="checkbox" name="export_json" value="1" class="h-4 w-4 accent-emerald-500" <?= (!empty($post['export_json']) && $post['export_json'] === '1') ? 'checked' : '' ?> />
+                        <span>Download JSON after clone</span>
+                    </label>
+                </div>
+            </div>
         </div>
         <div id="deterministicPanel" class="text-xs bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
             <div class="flex items-center justify-between gap-3 text-slate-600 dark:text-slate-400">
@@ -944,6 +959,7 @@
                 const action = f.querySelector('input[name="action"]')?.value || '';
                 if (action === 'download_full_backup') attachProgress(f, 'Preparing full backup…', true);
                 if (action === 'download_sql_structure') attachProgress(f, 'Exporting structure…', true);
+                if (action === 'download_report_json') attachProgress(f, 'Exporting JSON report…', true);
             });
             // Hide when user returns focus to the page or visibility changes back
             window.addEventListener('focus', () => { if (pending) hide(); });
@@ -954,11 +970,12 @@
     </script>
     <script>
         (function(){
-            // Persist row_limit, mask_sensitive, order_by_pk
+            // Persist row_limit, mask_sensitive, order_by_pk, export_json
             const form = document.getElementById('tablesForm');
             const rowLimit = form?.querySelector('input[name="row_limit"]');
             const maskChk = document.querySelector('input[name="mask_sensitive"]');
             const detChk = document.querySelector('input[name="order_by_pk"]');
+            const jsonChk = document.querySelector('input[name="export_json"]');
 
             // Load
             try {
@@ -966,6 +983,7 @@
                 if (rowLimit && s.row_limit) rowLimit.value = s.row_limit;
                 if (maskChk && typeof s.mask_sensitive === 'boolean') maskChk.checked = s.mask_sensitive;
                 if (detChk && typeof s.order_by_pk === 'boolean') detChk.checked = s.order_by_pk;
+                if (jsonChk && typeof s.export_json === 'boolean') jsonChk.checked = s.export_json;
             } catch(e) {}
 
             function save() {
@@ -973,6 +991,7 @@
                     row_limit: rowLimit ? rowLimit.value : undefined,
                     mask_sensitive: maskChk ? !!maskChk.checked : undefined,
                     order_by_pk: detChk ? !!detChk.checked : undefined,
+                    export_json: jsonChk ? !!jsonChk.checked : undefined,
                 };
                 localStorage.setItem('spt_prefs', JSON.stringify(s));
             }
@@ -1101,10 +1120,10 @@
     <?php $this->insert('partials/card', [
         'number' => '4',
         'title' => 'Done — Copy Report',
-        'content' => (function() use ($post, $report, $sourceDB, $targetDB, $rowLimit, $rowEstimates) { ob_start(); ?>
+        'content' => (function() use ($post, $report, $sourceDB, $targetDB, $rowLimit, $rowEstimates, $maskedColumns, $exportJson) { ob_start(); ?>
     <div class="text-xs text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-2">
         <span class="inline-flex h-5 w-5 items-center justify-center rounded bg-slate-100 dark:bg-slate-800">💡</span>
-        <span>Step 4: Review the copy report. You can download the sample or structure-only SQL.</span>
+        <span>Step 4: Review the copy report. You can download the sample, structure-only SQL, or a JSON summary.</span>
     </div>
     <div class="mb-4 text-sm text-slate-700">
         <div><strong>Source:</strong> <?= $sourceDB ?></div>
@@ -1152,7 +1171,36 @@
             dependencies, or add ordering/filters per table (e.g., by primary key). For deterministic sampling, replace
             the simple <code>LIMIT</code> with <code>ORDER BY id LIMIT X</code> where applicable.</p>
     </div>
-    <form method="post" class="mt-4">
+    <?php if (!empty($maskedColumns)): ?>
+    <div class="mt-3 text-xs text-slate-600 dark:text-slate-400">
+        <span class="font-medium text-slate-700 dark:text-slate-300">Masked columns:</span>
+        <?php foreach ($maskedColumns as $tbl => $cols): ?>
+        <span class="inline-block me-2"><span class="font-mono"><?= e((string) $tbl) ?></span> (<?= e(implode(', ', array_map('strval', (array) $cols))) ?>)</span>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+
+    <form method="post" class="mt-4" id="downloadReportJsonForm">
+        <input type="hidden" name="_csrf"
+            value="<?= htmlspecialchars($_SESSION['_csrf'] ?? '', ENT_QUOTES, 'UTF-8') ?>" />
+        <input type="hidden" name="action" value="download_report_json" />
+        <?php $this->insert('partials/button', [
+            'label' => 'Download JSON Report',
+            'variant' => 'secondary',
+            'type' => 'submit',
+            'icon' => '📄',
+        ]); ?>
+    </form>
+    <?php if (!empty($exportJson)): ?>
+    <script>
+        (function () {
+            var form = document.getElementById('downloadReportJsonForm');
+            if (form) { setTimeout(function () { form.requestSubmit ? form.requestSubmit() : form.submit(); }, 250); }
+        })();
+    </script>
+    <?php endif; ?>
+
+    <form method="post" class="mt-2">
         <?php foreach (['db_host','db_port','db_user','db_pass','source_db','target_db'] as $k): ?>
         <input type="hidden" name="<?= e($k) ?>" value="<?= e($post[$k] ?? '') ?>" />
         <?php endforeach; ?>
