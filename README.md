@@ -7,6 +7,18 @@
 
 Safely clone, export, and back up MySQL databases — with security-first features like sensitive data masking, session-backed credentials, and secure mysqldump execution.
 
+<p align="center">
+  <img src="docs/images/01-login.png" alt="SQL PowerTools login" width="720" />
+</p>
+
+<p align="center">
+  <img src="docs/images/02-connect.png" alt="Connect to MySQL step" width="720" />
+</p>
+
+<p align="center">
+  <img src="docs/images/03-flow.svg" alt="Connect → sample → mask → report flow" width="720" />
+</p>
+
 ## Why this exists
 
 Local and staging databases often contain production-like data. SQL PowerTools helps you create smaller, safer copies for development without putting MySQL credentials on the command line or shipping real passwords into sample DBs.
@@ -17,6 +29,7 @@ Local and staging databases often contain production-like data. SQL PowerTools h
 - 🎯 Deterministic sampling (ORDER BY primary key)
 - 💾 Full backups (schema + data), optional gzip
 - 🔒 Sensitive column auto-detection + per-table overrides
+- 📄 JSON clone/masking report for CI / automation
 - 🛡️ Secure mysqldump via defaults file (no creds in args)
 - 🔐 Session-backed DB creds, CSRF, and security headers
 - 🌙 Polished dark/light UI
@@ -50,7 +63,7 @@ cp .env.example .env
 php -S localhost:8080 -t .
 ```
 
-Open <http://localhost:8080>
+Open <http://localhost:8080> — you should see the admin login (screenshot above), then Step 1 Connect.
 
 ## Usage (sample N rows)
 
