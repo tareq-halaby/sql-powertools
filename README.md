@@ -69,8 +69,8 @@ Copy `.env.example` to `.env` and set the values that fit your setup.
 # Admin gate
 ADMIN_PASSWORD=change-me-please
 
-# Allow only these IPs (optional, comma-separated)
-ALLOWED_IPS=127.0.0.1,::1
+# Allow only these IPs (optional, comma-separated). Empty = allow all.
+ALLOW_IPS=127.0.0.1,::1
 
 # Toggle features/behaviors
 READ_ONLY=false            # true disables cloning
@@ -106,7 +106,7 @@ This tool does not phone home or transmit any data.
 
 ## License
 
-MIT — see `LICENSE`.
+MIT — see [`LICENSE`](LICENSE).
 
 ## Contributing
 

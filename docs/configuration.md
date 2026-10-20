@@ -1,34 +1,42 @@
 # Configuration Reference
 
-SQL PowerTools is configured via environment variables set in your `.env` file.
+SQL PowerTools is configured via environment variables in your `.env` file.
 
 ## Environment Variables
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `ADMIN_PASSWORD` | Yes | — | Password to access the SQL PowerTools dashboard |
+| `ADMIN_PASSWORD` | Recommended | `admin123` | Password for the dashboard login gate |
+| `ALLOW_IPS` | No | _(empty = allow all)_ | Comma-separated IP allowlist |
+| `READ_ONLY` | No | `false` | When `true`, cloning is disabled |
+| `DIAGRAM_ENABLED` | No | `true` | Show the Mermaid ER diagram button |
+| `DEFAULT_DB_HOST` | No | `localhost` | Pre-fill host on Step 1 |
+| `DEFAULT_DB_PORT` | No | `3306` | Pre-fill port on Step 1 |
+| `DEFAULT_DB_USER` | No | _(empty)_ | Pre-fill username on Step 1 |
+| `MYSQLDUMP_PATH` | No | `mysqldump` | Absolute path when `mysqldump` is not on `PATH` |
 
 ## `.env.example`
-
-An example configuration file is included at `.env.example`. Copy it to `.env` to get started:
 
 ```bash
 cp .env.example .env
 ```
 
+Edit `.env` and set at least `ADMIN_PASSWORD` before exposing the app.
+
 ## Session Configuration
 
-Database credentials are **session-scoped** — they are never written to disk or stored in plaintext. Once you close the browser tab, the connection details are cleared.
+Database credentials are **session-scoped** — they are never written to disk. Closing the browser session clears connection details.
 
 ## `mysqldump` Path
 
-SQL PowerTools attempts to auto-discover `mysqldump` in the following locations:
+SQL PowerTools resolves `mysqldump` in this order:
 
-1. System `PATH`
-2. Common WAMP installation paths (e.g., `C:\wamp64\bin\mysql\...`)
+1. `MYSQLDUMP_PATH` from the environment
+2. System `PATH`
+3. Common WAMP installation paths on Windows
 
-If auto-detection fails, an error will be shown on the export/backup screen. Ensure `mysqldump` is accessible from the web server's environment.
+If discovery fails, export/backup actions will show an error. Ensure the web server process can execute `mysqldump`.
 
 ## Sensitive Column Masking
 
-By default, columns with names matching patterns like `password`, `token`, `secret`, `api_key`, `hash`, or `salt` are masked in the UI. This can be overridden on a per-table basis via the table settings panel.
+Columns with names matching patterns like `password`, `token`, `secret`, `api_key`, `hash`, or `salt` are masked by default. Override per table in the UI when needed. Patterns live in `config/masking.php`.

@@ -1,14 +1,40 @@
 {
-    "name": "sql-powertools/app",
-    "description": "SQL PowerTools – clone, export, and backup MySQL with secure masking.",
+    "name": "tareq-halaby/sql-powertools",
+    "description": "Safely clone, sample, export, and back up MySQL databases with sensitive-data masking and secure mysqldump execution.",
     "type": "project",
     "license": "MIT",
+    "keywords": [
+        "mysql",
+        "mysqldump",
+        "database",
+        "backup",
+        "clone",
+        "masking",
+        "php",
+        "devtools"
+    ],
+    "homepage": "https://github.com/tareq-halaby/sql-powertools",
+    "support": {
+        "issues": "https://github.com/tareq-halaby/sql-powertools/issues",
+        "source": "https://github.com/tareq-halaby/sql-powertools"
+    },
     "authors": [
         {
-            "name": "SQL PowerTools Contributors"
+            "name": "Tareq Halaby",
+            "homepage": "https://github.com/tareq-halaby"
         }
     ],
     "require": {
+        "php": ">=8.0",
         "league/plates": "^3.6"
+    },
+    "autoload": {
+        "classmap": [
+            "src/"
+        ]
+    },
+    "scripts": {
+        "serve": "php -S localhost:8080 -t .",
+        "lint": "php -l index.php"
     }
 }
