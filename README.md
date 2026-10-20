@@ -1,8 +1,14 @@
-# SQL PowerTools ⚡️ 
+# SQL PowerTools
+
+
 
 Safely clone, export, and back up MySQL databases — with security-first features like sensitive data masking, session-backed credentials, and secure mysqldump execution.
 
-## ✨ Features
+## Why this exists
+
+Local and staging databases often contain production-like data. SQL PowerTools helps you create smaller, safer copies for development without putting MySQL credentials on the command line or shipping real passwords into sample DBs.
+
+## Features
 
 - 🧪 Clone structure and sample X rows per table
 - 🎯 Deterministic sampling (ORDER BY primary key)
@@ -12,13 +18,13 @@ Safely clone, export, and back up MySQL databases — with security-first featur
 - 🔐 Session-backed DB creds, CSRF, and security headers
 - 🌙 Polished dark/light UI
 
-## 📦 Requirements
+## Requirements
 
 - PHP 8.0+
 - MySQL 5.7+/8.x with access to `information_schema`
 - `mysqldump` available in PATH (auto-discovered on WAMP)
 
-## 🚀 Quick Start
+## Quick start
 
 1. Clone and install
 
@@ -28,14 +34,14 @@ cd sql-powertools
 composer install
 ```
 
-1. Configure environment
+2. Configure environment
 
 ```bash
 cp .env.example .env
 # Edit .env as needed
 ```
 
-1. Serve locally
+3. Serve locally
 
 ```bash
 php -S localhost:8080 -t .
@@ -43,7 +49,7 @@ php -S localhost:8080 -t .
 
 Open <http://localhost:8080>
 
-## 🧭 Usage (Sampling X rows)
+## Usage (sample N rows)
 
 1. Connect to MySQL (Step 1) and choose the source database (Step 2).
 2. Set “Rows per table (max)” or check “All rows” to omit LIMIT.
@@ -53,7 +59,7 @@ Open <http://localhost:8080>
 6. Optional: enable “Mask password-like columns” and override per-table columns.
 7. Click “Clone Sample” and review the report.
 
-## 🔧 Environment
+## Environment
 
 Copy `.env.example` to `.env` and set the values that fit your setup.
 
@@ -85,24 +91,24 @@ The app has a simple admin gate to avoid drive-by access on shared machines. Set
 
 This tool does not phone home or transmit any data.
 
-## 🛡️ Security
+## Security
 
 - No passwords in command args (uses `--defaults-extra-file`)
 - Security headers (CSP, Referrer-Policy, X-Frame-Options, Permissions-Policy)
 - CSRF tokens and session hardening
 - Masking auto-detects columns like `password`, `token`, `secret`, `api_key`, etc., plus per-table overrides
 
-## 🧱 Architecture
+## Architecture
 
 - Templates: League Plates (`views/`)
 - Single entry: `index.php`
 - UI: Tailwind via CDN + vanilla JS
 
-## 📄 License
+## License
 
 MIT — see `LICENSE`.
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Here's how to get started:
 
@@ -115,7 +121,7 @@ Contributions are welcome! Here's how to get started:
 Please make sure your code follows the existing style, and that sensitive data handling remains intact. Bug reports and feature suggestions are also appreciated via [GitHub Issues](https://github.com/tareq-halaby/sql-powertools/issues).
 
 
-## 📜 Changelog
+## Changelog
 
 ### v1.0.0 — 2026-04-04
 - Initial public release
