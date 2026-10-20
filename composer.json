@@ -35,6 +35,9 @@
     },
     "scripts": {
         "serve": "php -S localhost:8080 -t .",
-        "lint": "php -l index.php"
+        "lint": "php bin/lint.php",
+        "test": [
+            "@lint"
+        ]
     }
 }
