@@ -1,6 +1,9 @@
 # SQL PowerTools
 
-
+[![CI](https://github.com/tareq-halaby/sql-powertools/actions/workflows/ci.yml/badge.svg)](https://github.com/tareq-halaby/sql-powertools/actions/workflows/ci.yml)
+[![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4?logo=php&logoColor=white)](https://www.php.net/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/tareq-halaby/sql-powertools?style=social)](https://github.com/tareq-halaby/sql-powertools/stargazers)
 
 Safely clone, export, and back up MySQL databases — with security-first features like sensitive data masking, session-backed credentials, and secure mysqldump execution.
 
